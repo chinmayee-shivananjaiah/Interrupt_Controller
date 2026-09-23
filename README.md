@@ -21,7 +21,6 @@ Features
 - Interrupt Acknowledge/Clear Register (IACR)
 - Interrupt masking
 - Interrupt clearing
-- Priority-based interrupt handling
 - Single "IRQ_OUT" generation
 - Verilog testbench for functional verification
 - Web-based output visualization
@@ -30,7 +29,7 @@ Working
 
 When an interrupt source becomes active, the controller checks whether that interrupt is enabled.
 
-The enabled interrupts are evaluated according to their priority. The highest-priority active interrupt is selected, and the controller generates a single "IRQ_OUT" signal.
+The enabled interrupts are evaluated active interrupt is selected, and the controller generates a single "IRQ_OUT" signal.
 
 Interrupts can be masked using the interrupt enable mechanism and cleared through the interrupt clear mechanism.
 
