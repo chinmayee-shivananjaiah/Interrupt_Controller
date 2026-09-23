@@ -1,0 +1,95 @@
+`timescale 1ns / 1ps
+
+module interrupt_controller(
+
+    input wire clk,
+    input wire rst_n,
+    input wire [3:0] interrupt_in,
+    output wire irq_out,
+    input wire write_en,
+    input wire read_en,
+    input wire [3:0] addr,
+    input wire [31:0] write_data,
+    output reg [31:0] read_data
+);
+
+    parameter IER_ADDR  = 4'h0;
+    parameter ISR_ADDR  = 4'h4;
+    parameter IACR_ADDR = 4'h8;
+
+    reg [3:0] IER;
+    reg [3:0] ISR;
+
+    integer i;
+
+    always @(posedge clk or negedge rst_n)
+    begin
+        if(!rst_n)
+        begin
+            ISR <= 4'b0000;
+        end
+        else
+        begin
+            for(i = 0; i < 4; i = i + 1)
+            begin
+                if(interrupt_in[i] == 1'b1)
+                    ISR[i] <= 1'b1;
+            end
+
+            if(write_en && addr == IACR_ADDR)
+            begin
+                ISR <= ISR & (~write_data[3:0]);
+            end
+        end
+    end
+
+    always @(posedge clk or negedge rst_n)
+    begin
+        if(!rst_n)
+        begin
+            IER <= 4'b0000;
+        end
+        else
+        begin
+            if(write_en && addr == IER_ADDR)
+            begin
+                IER <= write_data[3:0];
+            end
+        end
+    end
+
+    assign irq_out = |(ISR & IER);
+
+    always @(*)
+    begin
+        read_data = 32'h00000000;
+
+        if(read_en)
+        begin
+            case(addr)
+
+                IER_ADDR:
+                begin
+                    read_data[3:0] = IER;
+                end
+
+                ISR_ADDR:
+                begin
+                    read_data[3:0] = ISR;
+                end
+
+                IACR_ADDR:
+                begin
+                    read_data = 32'h00000000;
+                end
+
+                default:
+                begin
+                    read_data = 32'hDEADBEEF;
+                end
+
+            endcase
+        end
+    end
+
+endmodule
